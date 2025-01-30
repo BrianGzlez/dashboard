@@ -1,0 +1,35 @@
+name: Refresh Data and Push to GitHub
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 10:00 AM (UTC-4 / República Dominicana)
+    - cron: '0 18 * * *'  # 2:00 PM (UTC-4 / República Dominicana)
+    - cron: '0 22 * * *'  # 6:00 PM (UTC-4 / República Dominicana)
+  workflow_dispatch:  # Permite ejecución manual desde GitHub Actions
+
+jobs:
+  refresh_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: 📦 Instalar dependencias
+        run: |
+          pip install -r requirements.txt
+
+      - name: 🔄 Refrescar Data
+        run: python update_data.py  # Ejecuta el script en GitHub Actions
+
+      - name: 🔄 Subir cambios a GitHub
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add Data.csv
+          git commit -m "🔄 Datos actualizados automáticamente" || echo "No hay cambios para subir"
+          git push
