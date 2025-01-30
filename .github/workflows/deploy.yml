@@ -23,8 +23,15 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install python-dotenv  # 🔄 Instalar dotenv manualmente
+          pip install python-dotenv  # Asegurar instalación de dotenv
 
+      - name: 🔑 Cargar Variables de Entorno
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> $GITHUB_ENV
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> $GITHUB_ENV
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
 
       - name: 🔄 Refrescar Data
         run: python update_data.py  # Ejecuta el script en GitHub Actions
