@@ -7,5 +7,6 @@ psycopg2-binary
 gspread
 oauth2client
 openpyxl
-python-dotenv  # 🔄 Asegúrate de que esto está en la lista
+dotenv
 requests
+python-dotenv
