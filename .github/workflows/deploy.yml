@@ -21,7 +21,10 @@ jobs:
 
       - name: 📦 Instalar dependencias
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
+          pip install python-dotenv  # 🔄 Instalar dotenv manualmente
+
 
       - name: 🔄 Refrescar Data
         run: python update_data.py  # Ejecuta el script en GitHub Actions
