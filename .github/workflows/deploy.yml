@@ -2,9 +2,9 @@ name: Refresh Data and Push to GitHub
 
 on:
   schedule:
-    - cron: '0 14 * * *'  # 10:00 AM (UTC-4 / República Dominicana)
-    - cron: '0 18 * * *'  # 2:00 PM (UTC-4 / República Dominicana)
-    - cron: '0 22 * * *'  # 6:00 PM (UTC-4 / República Dominicana)
+    - cron: '0 14 * * *'  # 10:00 AM República Dominicana (UTC-4)
+    - cron: '0 18 * * *'  # 2:00 PM República Dominicana (UTC-4)
+    - cron: '0 22 * * *'  # 6:00 PM República Dominicana (UTC-4)
   workflow_dispatch:  # Permite ejecución manual desde GitHub Actions
 
 jobs:
