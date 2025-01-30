@@ -7,6 +7,5 @@ psycopg2-binary
 gspread
 oauth2client
 openpyxl
-dotenv
+python-dotenv  # ✅ Librería correcta
 requests
-python-dotenv
