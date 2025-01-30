@@ -9,3 +9,4 @@ oauth2client
 openpyxl
 dotenv
 requests
+python-dotenv
