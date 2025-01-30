@@ -14,8 +14,8 @@ def connect_to_db():
     )
     return engine
 
-# Obtener los datos de PostgreSQL
-def fetch_data():
+# Obtener los datos de PostgreSQL y guardarlos en Data.csv
+def fetch_and_save_data():
     engine = connect_to_db()
     query = """ 
         SELECT 
@@ -43,9 +43,11 @@ def fetch_data():
             ON auth.dotfile_individuals.id = auth.dotfile_addresses.individual_id;
     """
     df = pd.read_sql(query, engine)
-    return df
+    
+    # Guardar en Data.csv
+    df.to_csv("Data.csv", index=False)
+    print("✅ Data actualizada y guardada en Data.csv")
 
-# Guardar en CSV para seguimiento (opcional)
-df = fetch_data()
-df.to_csv("Data.csv", index=False)
-print("✅ Data actualizada y guardada en Data.csv")
+# Ejecutar la función
+if __name__ == "__main__":
+    fetch_and_save_data()
