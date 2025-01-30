@@ -23,7 +23,13 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install python-dotenv  # Asegurar instalación de dotenv
+          pip install python-dotenv  # 🔄 Instalación manual para asegurar dotenv
+
+      - name: 🔍 Verificar instalación de dotenv
+        run: |
+          pip show python-dotenv || echo "❌ dotenv no está instalado"
+          python -c "import dotenv; print('✅ dotenv instalado correctamente')"
+
 
       - name: 🔑 Cargar Variables de Entorno
         run: |
