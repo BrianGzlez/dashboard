@@ -43,9 +43,13 @@ jobs:
         run: python update_data.py  # Ejecuta el script en GitHub Actions
 
       - name: 🔄 Subir cambios a GitHub
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          git remote set-url origin https://$GH_PAT@github.com/BrianGzlez/dashboard.git
           git add Data.csv
           git commit -m "🔄 Datos actualizados automáticamente" || echo "No hay cambios para subir"
-          git push
+          git push origin main
+
