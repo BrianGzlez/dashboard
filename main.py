@@ -87,7 +87,7 @@ if page == "Dashboard":
         start_date = st.date_input("📅 Start Date", df['created_at'].min())
         end_date = st.date_input("📅 End Date", df['created_at'].max())
         
-        st.info(f"📅 Last Updated: {last_update}")
+       
 
     start_date = pd.to_datetime(start_date).normalize()
     end_date = pd.to_datetime(end_date).normalize()
@@ -109,6 +109,8 @@ if page == "Dashboard":
         df_filtered = df_filtered[df_filtered['is_pep'] == True]
     elif pep_filter == "No":
         df_filtered = df_filtered[df_filtered['is_pep'] == False]
+
+     st.info(f"📅 Last Updated: {last_update}")
 
     # 📊 **Case KPIs**
     col1, col2, col3, col4 = st.columns(4)
