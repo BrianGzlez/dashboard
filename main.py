@@ -83,7 +83,7 @@ if page == "Dashboard":
         else:
             st.warning("⚠️ The column 'risk_level' is missing in the dataset.")
             risk_level_filter = []
-
+        st.info(f"📅 Last Updated: {last_update}")
         start_date = st.date_input("📅 Start Date", df['created_at'].min())
         end_date = st.date_input("📅 End Date", df['created_at'].max())
         
@@ -110,7 +110,7 @@ if page == "Dashboard":
     elif pep_filter == "No":
         df_filtered = df_filtered[df_filtered['is_pep'] == False]
 
-     st.info(f"📅 Last Updated: {last_update}")
+  
 
     # 📊 **Case KPIs**
     col1, col2, col3, col4 = st.columns(4)
