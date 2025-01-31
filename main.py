@@ -86,11 +86,12 @@ if page == "Dashboard":
 
         start_date = st.date_input("📅 Start Date", df['created_at'].min())
         end_date = st.date_input("📅 End Date", df['created_at'].max())
+        
+        st.info(f"📅 Last Updated: {last_update}")
 
     start_date = pd.to_datetime(start_date).normalize()
     end_date = pd.to_datetime(end_date).normalize()
 
-    st.info(f"📅 Last Updated: {last_update}")
 
     # Apply filters
     df_filtered = df[
