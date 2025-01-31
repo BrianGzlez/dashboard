@@ -2,18 +2,20 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import pytz
 
 # Obtener la fecha y hora de la última actualización del archivo
 def get_last_update_time(file_path):
     if os.path.exists(file_path):
-        # Obtener el tiempo de modificación del archivo
         last_modified_time = os.path.getmtime(file_path)
-        # Convertir a formato de fecha y hora legible
-        return datetime.fromtimestamp(last_modified_time).strftime('%Y-%m-%d %H:%M:%S')
+        utc_dt = datetime.fromtimestamp(last_modified_time, pytz.utc)  # Convertir a UTC
+        rd_tz = pytz.timezone('America/Santo_Domingo')  # Zona horaria UTC-4
+        local_dt = utc_dt.astimezone(rd_tz)  # Convertir a UTC-4
+        return local_dt.strftime('%Y-%m-%d %H:%M:%S UTC-4')
     else:
         return "File not found"
 
-# Llama a la función para obtener la última actualización
+# Calcular la última actualización
 last_update = get_last_update_time('Data.csv')
 
 
