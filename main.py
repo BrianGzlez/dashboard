@@ -1,5 +1,21 @@
 import streamlit as st
 import pandas as pd
+import os
+from datetime import datetime
+
+# Obtener la fecha y hora de la última actualización del archivo
+def get_last_update_time(file_path):
+    if os.path.exists(file_path):
+        # Obtener el tiempo de modificación del archivo
+        last_modified_time = os.path.getmtime(file_path)
+        # Convertir a formato de fecha y hora legible
+        return datetime.fromtimestamp(last_modified_time).strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        return "File not found"
+
+# Llama a la función para obtener la última actualización
+last_update = get_last_update_time('Data.csv')
+
 
 # Configure Streamlit page
 st.set_page_config(page_title="Case Dashboard", layout="wide")
@@ -73,6 +89,8 @@ if page == "Dashboard":
 
     start_date = pd.to_datetime(start_date).normalize()
     end_date = pd.to_datetime(end_date).normalize()
+
+    st.info(f"📅 Last Updated: {last_update}")
 
     # Apply filters
     df_filtered = df[
