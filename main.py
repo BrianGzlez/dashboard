@@ -86,10 +86,6 @@ if page == "Dashboard":
         
         start_date = st.date_input("📅 Start Date", df['created_at'].min())
         end_date = st.date_input("📅 End Date", df['created_at'].max())
-      
-    st.markdown("---")
-    st.info(f"📅 **Last Updated:** {last_update}")
-
     
     start_date = pd.to_datetime(start_date).normalize()
     end_date = pd.to_datetime(end_date).normalize()
@@ -165,6 +161,9 @@ if page == "Dashboard":
 
     # 📥 **Download Data**
     st.download_button("📥 Download Filtered Data", df_filtered.to_csv(index=False).encode('utf-8'), "filtered_data.csv", "text/csv")
+         
+    st.markdown("---")
+    st.info(f"📅 **Last Updated:** {last_update}")
 
 
 # 📜 **Instructions**
