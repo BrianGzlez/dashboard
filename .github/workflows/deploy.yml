@@ -51,5 +51,6 @@ jobs:
           git remote set-url origin https://$GH_PAT@github.com/BrianGzlez/dashboard.git
           git add Data.csv
           git commit -m "🔄 Datos actualizados automáticamente" || echo "No hay cambios para subir"
-          git push origin main
+          git push https://$GH_PAT@github.com/BrianGzlez/dashboard.git main
+
 
