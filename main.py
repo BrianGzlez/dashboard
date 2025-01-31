@@ -7,7 +7,7 @@ st.set_page_config(page_title="Case Dashboard", layout="wide")
 # Load data using cache
 @st.cache_data
 def load_data():
-    df = pd.read_csv('data.csv')
+    df = pd.read_csv('Data.csv')
 
     # Normalize column names
     df.columns = df.columns.str.strip().str.lower()
