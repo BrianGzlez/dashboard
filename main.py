@@ -16,7 +16,7 @@ def get_last_update_time(file_path):
         return "File not found"
 
 # Calcular la última actualización
-last_update = get_last_update_time('Data.csv')
+last_update = get_last_update_time('sss.csv')
 
 
 # Configure Streamlit page
@@ -45,6 +45,11 @@ if 'created_at' in df.columns:
     df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce').dt.tz_localize(None)
 else:
     st.error("⚠️ The column 'created_at' is missing in the dataset.")
+# Verify essential columns
+if 'last_activity_cases' in df.columns:
+    df['last_activity_cases'] = pd.to_datetime(df['last_activity_cases'], errors='coerce').dt.tz_localize(None)
+else:
+    st.error("⚠️ The column 'last_activity_cases' is missing in the dataset.")
 
 if 'assignee_name' in df.columns:
     df['assignee_name'] = df['assignee_name'].fillna('Un-assignee')
@@ -90,9 +95,14 @@ if page == "Dashboard":
         
         start_date = st.date_input("📅 Start Date", df['created_at'].min())
         end_date = st.date_input("📅 End Date", df['created_at'].max())
+        last_activity_date = st.date_input("📅 Start Activity Date", df['last_activity_cases'].min())
+        last_activity_end_date = st.date_input("📅 End Activity Date", df['last_activity_cases'].max())
     
     start_date = pd.to_datetime(start_date).normalize()
     end_date = pd.to_datetime(end_date).normalize()
+    last_activity_start_date = pd.to_datetime(last_activity_date).normalize()
+    last_activity_end_date = pd.to_datetime(last_activity_end_date).normalize()
+
 
 
     # Apply filters
@@ -104,7 +114,9 @@ if page == "Dashboard":
         df['country'].isin(country_filter) &  
         df['risk_level'].isin(risk_level_filter) &
         (df['created_at'] >= start_date) & 
-        (df['created_at'] <= end_date)
+        (df['created_at'] <= end_date) &
+        (df['last_activity_cases'] >= last_activity_start_date) & 
+        (df['last_activity_cases'] <= last_activity_end_date) 
     ]
 
     if pep_filter == "Yes":
@@ -138,6 +150,7 @@ if page == "Dashboard":
 
     # 📊 **Charts**
     df_filtered['Month'] = df_filtered['created_at'].dt.to_period('M').astype(str)
+    df_filtered['Month'] = df_filtered['last_activity_cases'].dt.to_period('M').astype(str)
     df_monthly_cases = df_filtered.groupby(['Month', 'assignee_name'])['case_id'].nunique().reset_index(name='Case Count')
     df_monthly_checks = df_filtered.groupby(['Month', 'assignee_name'])['check_id'].nunique().reset_index(name='Check Count')
 
@@ -237,4 +250,3 @@ elif page == "Instructions":
 
     ✨ **Explore your data, uncover insights, and make better decisions with this dashboard!** ✨
     """)
-
