@@ -255,12 +255,12 @@ elif page == "KYC Process Dashboard":
     col1, col2, col3 = st.columns(3)
     col4, col5, col6 = st.columns(3)
     
-    col1.metric("🆔 Users Starting KYC", total_kyc_cases)
-    col2.metric("📄 Completed KYC (In Review)", completed_kyc_cases)
-    col3.metric("🚨 AML Alerts", aml_alerts)
-    col4.metric("🛂 IDV Alerts", idv_alerts)
-    col5.metric("📑 Document Alerts (Individuals)", document_alerts)
-    col6.metric("🏢 Document Alerts (Companies)", document_alerts_companies)
+    col1.metric("🆔 Total Number of Users Starting KYC", total_kyc_cases)
+    col2.metric("📄 Total Number of Completed KYC and in Review", completed_kyc_cases)
+    col3.metric("🚨 Total Number of AML Alerts in Review", aml_alerts)
+    col4.metric("🛂 Total Number of IDV Alerts in Review", idv_alerts)
+    col5.metric("📑 Total Number of Document Alerts (Individuals) in Review", document_alerts)
+    col6.metric("🏢 Total Number of Document Alerts (Companies) in Review", document_alerts_companies)
 
     # 📋 **Datos Filtrados**
     st.markdown("### 📋 Filtered Data")
