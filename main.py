@@ -205,7 +205,7 @@ elif page == "KYC Process Dashboard":
 
     # Filtro de rango de fechas predefinido
     date_filter = st.sidebar.selectbox("📅 Select Date Range", 
-                                       ["Historical Data", "Last Day", "Last Week", "Last 15 Days", "Last Month"])
+                                       ["Historical Data", "Last 15 Days", "Last Month"])
 
     # Obtener la fecha actual
     today = datetime.today()
