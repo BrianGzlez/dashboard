@@ -211,7 +211,7 @@ elif page == "KYC Process Dashboard":
     today = datetime.today()
 
     # Filtrar datos según la opción seleccionada
-    filtered_data = data.copy()
+    filtered_data = df.copy()
     if date_filter == "Last Day":
         filtered_data = filtered_data[filtered_data["created_at"] >= today - timedelta(days=1)]
     elif date_filter == "Last Week":
