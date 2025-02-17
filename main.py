@@ -31,7 +31,7 @@ def load_data():
     return df
 
 # Navigation button
-page = st.sidebar.radio("Go to", ["Dashboard", "Instructions"])
+page = st.sidebar.radio("Go to", ["Dashboard", "KYC Process Dashboard", "Instructions"])
 
 # Load dataset
 df = load_data()
@@ -196,3 +196,63 @@ elif page == "Instructions":
     ## How to Use the Case Dashboard
     ...
     """)
+
+elif page == "KYC Process Dashboard":
+    st.title("📊 KYC Process Dashboard")
+    
+    # 📌 **Sidebar - Filtros**
+    st.sidebar.header("🔍 Filters")
+
+    # Filtro de rango de fechas predefinido
+    date_filter = st.sidebar.selectbox("📅 Select Date Range", 
+                                       ["Historical Data", "Last Day", "Last Week", "Last 15 Days", "Last Month"])
+
+    # Obtener la fecha actual
+    today = datetime.today()
+
+    # Filtrar datos según la opción seleccionada
+    filtered_data = data.copy()
+    if date_filter == "Last Day":
+        filtered_data = filtered_data[filtered_data["created_at"] >= today - timedelta(days=1)]
+    elif date_filter == "Last Week":
+        filtered_data = filtered_data[filtered_data["created_at"] >= today - timedelta(weeks=1)]
+    elif date_filter == "Last 15 Days":
+        filtered_data = filtered_data[filtered_data["created_at"] >= today - timedelta(days=15)]
+    elif date_filter == "Last Month":
+        filtered_data = filtered_data[filtered_data["created_at"] >= today - timedelta(days=30)]
+
+    # Dropdowns para filtros adicionales
+    case_status_filter = st.sidebar.selectbox("📂 Case Status", ["All"] + list(filtered_data["cases_status"].dropna().unique()))
+    check_type_filter = st.sidebar.selectbox("✅ Check Type", ["All"] + list(filtered_data["check_type"].dropna().unique()))
+    risk_level_filter = st.sidebar.selectbox("⚠️ Risk Level", ["All"] + list(filtered_data["risk_level"].dropna().unique()))
+    country_filter = st.sidebar.selectbox("🌍 Country", ["All"] + list(filtered_data["country"].dropna().unique()))
+
+    # Aplicar filtros solo si no es "All"
+    if case_status_filter != "All":
+        filtered_data = filtered_data[filtered_data["cases_status"] == case_status_filter]
+    if check_type_filter != "All":
+        filtered_data = filtered_data[filtered_data["check_type"] == check_type_filter]
+    if risk_level_filter != "All":
+        filtered_data = filtered_data[filtered_data["risk_level"] == risk_level_filter]
+    if country_filter != "All":
+        filtered_data = filtered_data[filtered_data["country"] == country_filter]
+
+    # 📊 **KPIs**
+    col1, col2, col3 = st.columns(3)
+    col4, col5, col6 = st.columns(3)
+
+    col1.metric("🆔 Users Starting KYC", filtered_data['case_id'].nunique())
+    col2.metric("📄 Completed KYC (In Review)", filtered_data[filtered_data['cases_status'] == 'open']['case_id'].nunique())
+    col3.metric("🚨 AML Alerts", filtered_data[(filtered_data['check_type'] == 'aml') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
+    col4.metric("🛂 IDV Alerts", filtered_data[(filtered_data['check_type'] == 'id_verification') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
+    col5.metric("📑 Document Alerts (Individuals)", filtered_data[(filtered_data['check_type'].isin(['id_document', 'document'])) & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
+    col6.metric("🏢 Document Alerts (Companies)", filtered_data[(filtered_data['check_type'] == 'document') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
+
+    # 📋 **Datos Filtrados**
+    st.markdown("### 📋 Filtered Data")
+    st.dataframe(filtered_data)
+
+    # 📥 **Descargar datos filtrados**
+    st.download_button("📥 Download Filtered Data", filtered_data.to_csv(index=False).encode('utf-8'), "filtered_data.csv", "text/csv")
+
+
