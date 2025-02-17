@@ -251,7 +251,6 @@ elif page == "KYC Process Dashboard":
                                               (filtered_data['entity_type'] == 'business')]['check_id'].nunique()
 
 
-    st.title("📊 KYC Process Dashboard")
     
     col1, col2, col3 = st.columns(3)
     col4, col5, col6 = st.columns(3)
