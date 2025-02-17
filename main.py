@@ -233,16 +233,35 @@ elif page == "KYC Process Dashboard":
     if country_filter != "All":
         filtered_data = filtered_data[filtered_data["country"] == country_filter]
 
-    # 📊 **KPIs**
-    col1, col2, col3 = st.columns(3)
-    col4, col5, col6 = st.columns(3)
+    total_kyc_cases = filtered_data['case_id'].nunique()
+completed_kyc_cases = filtered_data[filtered_data['cases_status'] == 'open']['case_id'].nunique()
+aml_alerts = filtered_data[(filtered_data['check_type'] == 'aml') & (filtered_data['check_status'] == 'need_review') & 
+                           (filtered_data['cases_status'].isin(['open', 'approved']))]['check_id'].nunique()
+idv_alerts = filtered_data[(filtered_data['check_type'] == 'id_verification') & (filtered_data['check_status'] == 'need_review') & 
+                           (filtered_data['cases_status'] == 'open')]['check_id'].nunique()
 
-    col1.metric("🆔 Users Starting KYC", filtered_data['case_id'].nunique())
-    col2.metric("📄 Completed KYC (In Review)", filtered_data[filtered_data['cases_status'] == 'open']['case_id'].nunique())
-    col3.metric("🚨 AML Alerts", filtered_data[(filtered_data['check_type'] == 'aml') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
-    col4.metric("🛂 IDV Alerts", filtered_data[(filtered_data['check_type'] == 'id_verification') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
-    col5.metric("📑 Document Alerts (Individuals)", filtered_data[(filtered_data['check_type'].isin(['id_document', 'document'])) & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
-    col6.metric("🏢 Document Alerts (Companies)", filtered_data[(filtered_data['check_type'] == 'document') & (filtered_data['check_status'] == 'need_review')]['check_id'].nunique())
+individual_types = {"POA Lookback (1.14.2025)", "Individual", "True Match - PEP", "Employee", "VIP_Customer"}
+document_alerts = filtered_data[(filtered_data['check_type'].isin(['id_document', 'document'])) & 
+                                (filtered_data['check_status'] == 'need_review') & 
+                                (filtered_data['cases_status'] == 'open') & 
+                                (filtered_data['entity_type'].apply(lambda x: any(ind in x for ind in individual_types)))]['check_id'].nunique()
+document_alerts_companies = filtered_data[(filtered_data['check_type'] == 'document') & 
+                                          (filtered_data['check_status'] == 'need_review') & 
+                                          (filtered_data['cases_status'] == 'open') & 
+                                          (filtered_data['entity_type'] == 'business')]['check_id'].nunique()
+
+
+st.title("📊 KYC Process Dashboard")
+
+col1, col2, col3 = st.columns(3)
+col4, col5, col6 = st.columns(3)
+
+col1.metric("🆔 Users Starting KYC", total_kyc_cases)
+col2.metric("📄 Completed KYC (In Review)", completed_kyc_cases)
+col3.metric("🚨 AML Alerts", aml_alerts)
+col4.metric("🛂 IDV Alerts", idv_alerts)
+col5.metric("📑 Document Alerts (Individuals)", document_alerts)
+col6.metric("🏢 Document Alerts (Companies)", document_alerts_companies)
 
     # 📋 **Datos Filtrados**
     st.markdown("### 📋 Filtered Data")
