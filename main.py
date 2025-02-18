@@ -4,7 +4,7 @@ import os
 import altair as alt
 import pytz
 from datetime import datetime, date, timedelta
-import plotly.express as px
+
 
 # Obtener la fecha y hora de la última actualización del archivo
 def get_last_update_time(file_path):
