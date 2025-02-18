@@ -399,7 +399,7 @@ elif page == "Advanced Stats":
         st.info("No open cases available for aging analysis.")
     
     st.markdown("---")
-    r
+  
     # Additional Advanced Analytics Suggestions
     st.subheader("Additional Advanced Analytics")
     st.markdown("""
