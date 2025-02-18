@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime, timedelta
+import altair as alt
 import pytz
 
 # Obtener la fecha y hora de la última actualización del archivo
