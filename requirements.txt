@@ -10,3 +10,4 @@ openpyxl
 python-dotenv  # ✅ Librería correcta
 requests
 pytz
+plotly
