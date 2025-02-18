@@ -31,7 +31,7 @@ def load_data():
     return df
 
 # Navigation button
-page = st.sidebar.radio("Go to", ["Dashboard", "KYC Process Dashboard", "Instructions"])
+page = st.sidebar.radio("Go to", ["Dashboard", "KYC Process Dashboard", "Advanced Stats"])
 
 # Load dataset
 df = load_data()
@@ -190,12 +190,231 @@ if page == "Dashboard":
     st.info(f":date: **Last Updated:** {last_update}")
 
 # :scroll: **Instructions**
-elif page == "Instructions":
-    st.title(":book: Instructions")
+elif page == "Advanced Stats":
+    st.title(":bar_chart: Advanced Stats - Agent Tracking")
+    st.markdown("### Select an agent to view advanced statistics and compare with Horatio team averages")
+    
+    # Agent selection
+    agent_list = sorted(df['assignee_name'].dropna().unique())
+    selected_agent = st.selectbox("Select an agent", agent_list)
+    df_agent = df[df['assignee_name'] == selected_agent].copy()
+    
+    # Ensure 'created_at' is in datetime format
+    if 'created_at' in df_agent.columns:
+        df_agent['created_at'] = pd.to_datetime(df_agent['created_at'], errors='coerce')
+        df_agent['Month'] = df_agent['created_at'].dt.to_period('M').astype(str)
+    else:
+        st.error("Missing 'created_at' column for agent data.")
+        st.stop()
+    
+    # General Metrics for the selected agent
+    total_cases = df_agent['case_id'].nunique()
+    approved_cases = df_agent[df_agent['cases_status'] == 'approved']['case_id'].nunique()
+    rejected_cases = df_agent[df_agent['cases_status'] == 'rejected']['case_id'].nunique()
+    open_cases = df_agent[df_agent['cases_status'] == 'open']['case_id'].nunique()
+    
+    st.subheader("General Metrics")
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Cases", total_cases)
+    col2.metric("Approved Cases", approved_cases)
+    col3.metric("Rejected Cases", rejected_cases)
+    col4.metric("Open Cases", open_cases)
+    
+    if (approved_cases + rejected_cases) > 0:
+        agent_win_ratio = round(approved_cases / (approved_cases + rejected_cases) * 100, 2)
+        st.write(f"**Approval Rate (Agent):** {agent_win_ratio}%")
+    else:
+        st.write("Not enough data to calculate the agent's approval rate.")
+    
+    # Horatio team data
+    df_horatio = df[df['assignee_email'].str.endswith("@hirehoratio.co", na=False)].copy()
+    horatio_approved = df_horatio[df_horatio['cases_status'] == 'approved']['case_id'].nunique()
+    horatio_rejected = df_horatio[df_horatio['cases_status'] == 'rejected']['case_id'].nunique()
+    
+    if (horatio_approved + horatio_rejected) > 0:
+        horatio_win_ratio = round(horatio_approved / (horatio_approved + horatio_rejected) * 100, 2)
+        st.write(f"**Approval Rate (Horatio Team):** {horatio_win_ratio}%")
+    else:
+        st.write("Not enough data to calculate the Horatio team's approval rate.")
+    
+    st.markdown("---")
+    
+    # Helper functions for approval rate trends
+    def compute_approved_rate_trend_cases(data):
+        """Compute monthly approval rate trend for cases."""
+        if 'updated_at_cases' in data.columns:
+            data['Month_Cases'] = pd.to_datetime(data['updated_at_cases'], errors='coerce').dt.to_period('M').astype(str)
+        else:
+            data['Month_Cases'] = data['created_at'].dt.to_period('M').astype(str)
+        trend = data.groupby('Month_Cases').agg(
+            approved_cases=('cases_status', lambda x: (x == 'approved').sum()),
+            total_cases=('case_id', 'nunique')
+        ).reset_index()
+        trend['approved_rate'] = trend['approved_cases'] / trend['total_cases']
+        return trend
+    
+    def compute_approved_rate_trend_checks(data):
+        """Compute monthly approval rate trend for checks."""
+        if 'updated_at_checks' in data.columns:
+            data['Month_Checks'] = pd.to_datetime(data['updated_at_checks'], errors='coerce').dt.to_period('M').astype(str)
+        else:
+            data['Month_Checks'] = data['created_at'].dt.to_period('M').astype(str)
+        trend = data.groupby('Month_Checks').agg(
+            approved_checks=('check_status', lambda x: (x == 'approved').sum()),
+            total_checks=('check_id', 'nunique')
+        ).reset_index()
+        trend['approved_rate'] = trend['approved_checks'] / trend['total_checks']
+        return trend
+    
+    # Approval rate trend for cases
+    agent_cases_trend = compute_approved_rate_trend_cases(df_agent)
+    horatio_cases_trend = compute_approved_rate_trend_cases(df_horatio)
+    agent_cases_trend['Group'] = 'Selected Agent'
+    horatio_cases_trend['Group'] = 'Horatio Team'
+    combined_cases_trend = pd.concat([agent_cases_trend, horatio_cases_trend], ignore_index=True)
+    
+    st.subheader("Monthly Approval Rate Trend (Cases)")
+    if not combined_cases_trend.empty:
+        chart_cases = alt.Chart(combined_cases_trend).mark_line(point=True).encode(
+            x=alt.X('Month_Cases:N', title='Month'),
+            y=alt.Y('approved_rate:Q', title='Approval Rate', axis=alt.Axis(format='%')),
+            color=alt.Color('Group:N', scale=alt.Scale(domain=['Selected Agent', 'Horatio Team'],
+                                                        range=['#1f77b4', '#ff7f0e'])),
+            tooltip=['Month_Cases', alt.Tooltip('approved_rate:Q', format='.2%')]
+        ).properties(width=700, height=300, title="Monthly Approval Rate Trend (Cases)")
+        st.altair_chart(chart_cases, use_container_width=True)
+    else:
+        st.info("No data available for case approval trend.")
+    
+    st.markdown("---")
+    
+    # Approval rate trend for checks
+    agent_checks_trend = compute_approved_rate_trend_checks(df_agent)
+    horatio_checks_trend = compute_approved_rate_trend_checks(df_horatio)
+    agent_checks_trend['Group'] = 'Selected Agent'
+    horatio_checks_trend['Group'] = 'Horatio Team'
+    combined_checks_trend = pd.concat([agent_checks_trend, horatio_checks_trend], ignore_index=True)
+    
+    st.subheader("Monthly Approval Rate Trend (Checks)")
+    if not combined_checks_trend.empty:
+        chart_checks = alt.Chart(combined_checks_trend).mark_line(point=True).encode(
+            x=alt.X('Month_Checks:N', title='Month'),
+            y=alt.Y('approved_rate:Q', title='Approval Rate', axis=alt.Axis(format='%')),
+            color=alt.Color('Group:N', scale=alt.Scale(domain=['Selected Agent', 'Horatio Team'],
+                                                        range=['#1f77b4', '#ff7f0e'])),
+            tooltip=['Month_Checks', alt.Tooltip('approved_rate:Q', format='.2%')]
+        ).properties(width=700, height=300, title="Monthly Approval Rate Trend (Checks)")
+        st.altair_chart(chart_checks, use_container_width=True)
+    else:
+        st.info("No data available for check approval trend.")
+    
+    st.markdown("---")
+    
+    # Resolution Time Analysis
+    st.subheader("Resolution Time Analysis")
+    if 'last_activity_cases' in df_agent.columns:
+        df_agent['last_activity_cases'] = pd.to_datetime(df_agent['last_activity_cases'], errors='coerce')
+        df_agent['resolution_time'] = (df_agent['last_activity_cases'] - df_agent['created_at']).dt.days
+    else:
+        st.error("Missing 'last_activity_cases' column for resolution time analysis.")
+    
+    df_agent_closed = df_agent[df_agent['cases_status'].isin(['approved', 'rejected'])].copy()
+    if not df_agent_closed.empty:
+        agent_resolution_trend = df_agent_closed.groupby('Month').agg(avg_resolution=('resolution_time', 'mean')).reset_index()
+    else:
+        agent_resolution_trend = pd.DataFrame()
+    
+    if 'last_activity_cases' in df_horatio.columns:
+        df_horatio['last_activity_cases'] = pd.to_datetime(df_horatio['last_activity_cases'], errors='coerce')
+        df_horatio['resolution_time'] = (df_horatio['last_activity_cases'] - pd.to_datetime(df_horatio['created_at'], errors='coerce')).dt.days
+    else:
+        st.error("Missing 'last_activity_cases' column for Horatio team resolution time analysis.")
+    
+    df_horatio_closed = df_horatio[df_horatio['cases_status'].isin(['approved', 'rejected'])].copy()
+    if not df_horatio_closed.empty:
+        horatio_resolution_trend = df_horatio_closed.groupby(
+            df_horatio_closed['created_at'].dt.to_period('M').astype(str)
+        ).agg(avg_resolution=('resolution_time', 'mean')).reset_index().rename(columns={'created_at': 'Month'})
+    else:
+        horatio_resolution_trend = pd.DataFrame()
+    
+    if not agent_resolution_trend.empty and not horatio_resolution_trend.empty:
+        agent_resolution_trend['Group'] = 'Selected Agent'
+        horatio_resolution_trend['Group'] = 'Horatio Team'
+        combined_resolution_trend = pd.concat([agent_resolution_trend, horatio_resolution_trend], ignore_index=True)
+        chart_resolution = alt.Chart(combined_resolution_trend).mark_line(point=True).encode(
+            x=alt.X('Month:N', title='Month'),
+            y=alt.Y('avg_resolution:Q', title='Average Resolution Time (days)'),
+            color=alt.Color('Group:N', scale=alt.Scale(domain=['Selected Agent', 'Horatio Team'],
+                                                        range=['#1f77b4', '#ff7f0e'])),
+            tooltip=['Month', alt.Tooltip('avg_resolution:Q', format=".2f")]
+        ).properties(width=700, height=300, title="Monthly Average Resolution Time")
+        st.altair_chart(chart_resolution, use_container_width=True)
+    else:
+        st.info("Not enough data to analyze resolution time trends.")
+    
+    st.markdown("---")
+    
+    # Resolution Time Distribution (Box Plot)
+    st.subheader("Resolution Time Distribution")
+    if not df_agent_closed.empty and not df_horatio_closed.empty:
+        agent_box = df_agent_closed[['resolution_time']].copy()
+        agent_box['Group'] = 'Selected Agent'
+        horatio_box = df_horatio_closed[['resolution_time']].copy()
+        horatio_box['Group'] = 'Horatio Team'
+        combined_box = pd.concat([agent_box, horatio_box], ignore_index=True)
+        boxplot = alt.Chart(combined_box).mark_boxplot().encode(
+            x=alt.X('Group:N', title='Group'),
+            y=alt.Y('resolution_time:Q', title='Resolution Time (days)'),
+            tooltip=[alt.Tooltip('resolution_time:Q', title='Days')]
+        ).properties(width=700, height=300, title="Distribution of Resolution Time")
+        st.altair_chart(boxplot, use_container_width=True)
+    else:
+        st.info("Not enough data to analyze resolution time distribution.")
+    
+    st.markdown("---")
+    
+    # Open Cases Aging Analysis
+    st.subheader("Open Cases Aging Analysis")
+    today = pd.to_datetime(date.today())
+    # Remove duplicate cases based on 'case_id' before analysis
+    df_open = df_agent[df_agent['cases_status'] == 'open'].drop_duplicates(subset=['case_id']).copy()
+    if not df_open.empty:
+        df_open['days_open'] = (today - df_open['created_at']).dt.days
+        st.markdown("**Summary of Open Cases Aging (in days):**")
+        st.write(df_open['days_open'].describe().reset_index())
+        aging_chart = alt.Chart(df_open).mark_bar().encode(
+            x=alt.X('days_open:Q', bin=alt.Bin(step=10), title='Days Open'),
+            y=alt.Y('count()', title='Number of Cases'),
+            tooltip=[alt.Tooltip('count()', title='Count'),
+                     alt.Tooltip('days_open:Q', title='Days Open')]
+        ).properties(width=700, height=300, title="Distribution of Open Cases Aging")
+        st.altair_chart(aging_chart, use_container_width=True)
+        oldest_cases = df_open.sort_values(by='days_open', ascending=False).head(10)
+        st.markdown("**Top 10 Oldest Open Cases:**")
+        st.dataframe(oldest_cases[['case_id', 'created_at', 'days_open']])
+    else:
+        st.info("No open cases available for aging analysis.")
+    
+    st.markdown("---")
+    r
+    # Additional Advanced Analytics Suggestions
+    st.subheader("Additional Advanced Analytics")
     st.markdown("""
-    ## How to Use the Case Dashboard
-    ...
+    **Question:** Given that duplicate cases (with the same `case_id`) are excluded from the aging analysis of open cases, what other advanced analytics would you be interested in seeing?
+    
+    Some suggestions include:
+    - **Predictive Analytics:** Forecasting case resolution times using historical trends.
+    - **Cohort Analysis:** Grouping cases by creation month or other attributes to analyze performance over time.
+    - **Funnel Analysis:** Tracking the conversion process from open to approved or rejected.
+    - **Agent Efficiency Metrics:** Comparing agents based on resolution times, workload, and success rates.
+    - **Outlier Detection:** Identifying cases with unusually high resolution times or abnormal patterns.
+    - **Geographical Analysis:** If location data is available, analyzing cases by region or country.
     """)
+    
+    st.markdown("---")
+    st.subheader("Selected Agent Data")
+    st.dataframe(df_agent)
 
 elif page == "KYC Process Dashboard":
     st.title("📊 KYC Process Dashboard")
