@@ -400,21 +400,7 @@ elif page == "Advanced Stats":
     
     st.markdown("---")
   
-    # Additional Advanced Analytics Suggestions
-    st.subheader("Additional Advanced Analytics")
-    st.markdown("""
-    **Question:** Given that duplicate cases (with the same `case_id`) are excluded from the aging analysis of open cases, what other advanced analytics would you be interested in seeing?
-    
-    Some suggestions include:
-    - **Predictive Analytics:** Forecasting case resolution times using historical trends.
-    - **Cohort Analysis:** Grouping cases by creation month or other attributes to analyze performance over time.
-    - **Funnel Analysis:** Tracking the conversion process from open to approved or rejected.
-    - **Agent Efficiency Metrics:** Comparing agents based on resolution times, workload, and success rates.
-    - **Outlier Detection:** Identifying cases with unusually high resolution times or abnormal patterns.
-    - **Geographical Analysis:** If location data is available, analyzing cases by region or country.
-    """)
-    
-    st.markdown("---")
+
     st.subheader("Selected Agent Data")
     st.dataframe(df_agent)
 
